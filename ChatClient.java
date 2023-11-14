@@ -10,7 +10,6 @@ public class ChatClient {
             int ServerPort = 1311;
     //=====================================================
 
-            // Tạo một Kết nối đến Server
             Socket socket = new Socket(ServerIP, ServerPort);
 
             BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
