@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ChatServer {
+    // cài đặt cổng port
     private static final int PORT = 1311;
+    // Tạo một dach sách các đối tượng thuộc kiểu ClientHandler
     private static List<ClientHandler> clients = new ArrayList<>();
 
     public static void main(String[] args) {
