@@ -11,15 +11,21 @@ public class ChatServer {
         try {
             ServerSocket serverSocket = new ServerSocket(PORT);
             System.out.println("Server is listening on port " + PORT);
+            try{
+                while (true) {
+                    Socket clientSocket = serverSocket.accept();
+                    System.out.println("Client connected: " + clientSocket);
 
-            while (true) {
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("Client connected: " + clientSocket);
-
-                ClientHandler clientHandler = new ClientHandler(clientSocket);
-                clients.add(clientHandler);
-                new Thread(clientHandler).start();
+                    ClientHandler clientHandler = new ClientHandler(clientSocket);
+                    clients.add(clientHandler);
+                    new Thread(clientHandler).start();
+                }
             }
+            catch (IOException e) {
+                serverSocket.close();
+            }
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }
