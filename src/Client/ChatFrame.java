@@ -1,28 +1,47 @@
 package Client;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 
-public class ChatFrame {
+public class ChatFrame extends JFrame {
 
-    private JFrame frame;
+    private Socket socket;
+    private String serverIP = "localhost";
+    private int serverPost = 1311;
+    private BufferedReader in;
+    private PrintWriter out;
+
     private JList<String> chatList;
     private DefaultListModel<String> chatListModel;
-
     private JTextArea mesArea;
     private JTextField mesField;
     private JButton sendButton;
 
     public ChatFrame(){
+        setFrame();
+        setVisible(false);
+        if (setSocker()) {
+            login();
+        }
+
+            new Thread(() -> serverResponse()).start();
+            sendMessage();
+    }
+
+    private void setFrame(){
         // Thiết lập khung chat
-        frame = new JFrame("MINI CHAT BOX");
-        frame.setLayout(new BorderLayout());
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800, 600);
-        frame.setResizable(false);
+        setTitle("MINI CHAT BOX");
+        setLayout(new BorderLayout());
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(800, 600);
+
 
         // Thiết lập các thành phần của khung chat
         chatListModel = new DefaultListModel<>();
@@ -47,14 +66,76 @@ public class ChatFrame {
         rightPanel.add(chatPanel, BorderLayout.SOUTH);
 
         // thêm layout vào khung chat
-        frame.add(leftPanel, BorderLayout.WEST);
-        frame.add(rightPanel, BorderLayout.CENTER);
+        add(leftPanel, BorderLayout.WEST);
+        add(rightPanel, BorderLayout.CENTER);
+    }
 
-        frame.setVisible(true);
+    private boolean setSocker(){
+        try {
+            socket = new Socket(serverIP, serverPost);
+            out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true);
+            in = new  BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+            return true;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return false;
+        }
+    }
 
+    private boolean login(){
+        LoginFrame loginFrame = new LoginFrame();
+        boolean ok = false;
+        loginFrame.loginButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String username = loginFrame.usernameField.getText();
+                char[] password = loginFrame.passwordField.getPassword();
+                out.println("#LOGIN#");
+                out.println(username);
+                out.println(password);
+                try {
+                    String check = in.readLine();
+                    if (check == "1") 
+                        ok = true;
+                    else 
+                        ok = false;
+                } catch (IOException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+            }
+        });
+        return ok;
+    }
+
+    private void serverResponse() {
+        try {
+            String Response;
+            while ((Response = in.readLine()) != null) {
+                addmessegetochat(Response);
+            }
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void sendMessage(){
+        sendButton.addActionListener(e -> {
+            String message = mesField.getText();
+            out.println(message);
+            addmessegetochat(">>> " + message);
+            mesField.setText("");
+        });
+    }
+
+    private void addmessegetochat(String message){
+        mesArea.append(message + "\n");
+        mesArea.setCaretPosition(mesArea.getDocument().getLength());
     }
 
     public static void main(String[] args) {
-        ChatFrame frchat = new ChatFrame();
+        SwingUtilities.invokeLater(() -> new ChatFrame());
     }
 }

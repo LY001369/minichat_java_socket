@@ -8,7 +8,7 @@ public class ChatServer {
     private static final int PORT = 1311;
     private static List<ClientHandler> clients = new ArrayList<>();
 
-    public static void main(String[] args) {
+    public ChatServer(){
         try {
             ServerSocket serverSocket = new ServerSocket(PORT);
             System.out.println("Server is listening on port " + PORT);
@@ -30,6 +30,10 @@ public class ChatServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+        ChatServer cServer = new ChatServer();
     }
 
     static void broadcast(String message, ClientHandler sender) {
