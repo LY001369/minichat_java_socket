@@ -8,6 +8,7 @@ class ClientHandler implements Runnable {
     private Socket clientSocket;
     private BufferedReader in;
     private PrintWriter out;
+    private String username;
 
     ClientHandler(Socket socket) {
         this.clientSocket = socket;
@@ -22,12 +23,24 @@ class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            String username = in.readLine();
+            username = in.readLine();
             ChatServer.broadcast(username + " has joined the chat.", this);
 
             String message;
             while ((message = in.readLine()) != null) {
-                ChatServer.broadcast(username + ": " + message, this);
+                if (message.startsWith("/private")) {
+                    String[] parts = message.split(" ", 3);
+                    if (parts.length == 3) {
+                        String receiverUsername = parts[1];
+                        String privateMessage = parts[2];
+                        ChatServer.sendPrivateMessage(privateMessage, receiverUsername, this);
+                    } else {
+                        sendMessage("Invalid private message format. Use /private username message");
+                    }
+                } else {
+                    ChatServer.broadcast(username + ": " + message, this);
+
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -44,5 +57,9 @@ class ClientHandler implements Runnable {
 
     void sendMessage(String message) {
         out.println(message);
+    }
+
+    String getUsername() {
+        return username;
     }
 }
